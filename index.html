@@ -68,6 +68,14 @@ section{padding:56px 0}
 .k-links a:hover{color:var(--slate-deep)}
 .k-badge{align-self:flex-start;font-size:.78rem;background:var(--gold-soft);color:#8a6d3b;border-radius:999px;padding:5px 13px;font-weight:600;margin-bottom:14px}
 .artikel-note{margin-top:22px;background:var(--gold-soft);border:1px dashed var(--gold);border-radius:12px;padding:18px 22px;color:#8a6d3b;font-size:.95rem}
+.sub-head{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--slate-deep);margin-bottom:18px}
+.arsip-list{display:grid;gap:12px}
+.arsip-item{display:flex;gap:16px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;text-decoration:none;transition:transform .15s}
+.arsip-item:hover{transform:translateY(-2px)}
+.arsip-item .tgl{flex-shrink:0;font-size:.82rem;color:var(--muted);min-width:150px}
+.arsip-item .judul{font-weight:600;color:var(--slate-deep)}
+.arsip-item .kat{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.arsip-empty{color:var(--muted);font-size:.95rem}
 /* ---------- peran ---------- */
 .roles-strip{background:var(--slate-deep);border-radius:var(--radius);padding:40px 38px;color:#eef1f5}
 .roles-strip h2{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:18px;color:#fff}
@@ -208,29 +216,13 @@ footer .draft-note{margin-bottom:10px}
     <div class="sec-head">
       <span class="eyebrow">Artikel</span>
       <h2>Tulisan</h2>
-      <p>Ruang berbagi: gagasan pendidikan, motivasi belajar, dan tausyiah keislaman.</p>
+      <p>Jadwal terbit: <b>Senin</b> &mdash; Pendidikan &middot; <b>Rabu</b> &mdash; Motivasi &middot; <b>Jumat</b> &mdash; Tausiyah Keislaman.<br>Artikel terbit otomatis sesuai harinya; arsip di bawah tetap dapat dibaca kapan pun.</p>
     </div>
-    <div class="karya-grid">
-      <article class="karya">
-        <div class="k-eyebrow">Kategori</div>
-        <h3>Pendidikan</h3>
-        <p>Gagasan dan praktik baik pembelajaran matematika — dari strategi di kelas hingga pemanfaatan media digital.</p>
-        <span class="k-badge">Artikel segera hadir</span>
-      </article>
-      <article class="karya">
-        <div class="k-eyebrow">Kategori</div>
-        <h3>Motivasi</h3>
-        <p>Penyemangat belajar untuk para siswa — dan pengingat bagi kita semua untuk terus bertumbuh.</p>
-        <span class="k-badge">Artikel segera hadir</span>
-      </article>
-      <article class="karya">
-        <div class="k-eyebrow">Kategori</div>
-        <h3>Tausiyah Keislaman</h3>
-        <p>Renungan dan nasihat keislaman untuk menata hati dan kehidupan sehari-hari.</p>
-        <span class="k-badge">Artikel segera hadir</span>
-      </article>
-    </div>
-    <div class="artikel-note">Punya naskah artikel? Kirimkan ke saya — nanti saya tata rapi dan terbitkan di bagian ini, lengkap dengan kategorinya.</div>
+    <h3 class="sub-head">Artikel Terbaru</h3>
+    <div class="karya-grid" id="artikel-terbaru"></div>
+    <h3 class="sub-head" style="margin-top:38px">Arsip Artikel</h3>
+    <div class="arsip-list" id="artikel-arsip"></div>
+    <div class="artikel-note">Punya naskah artikel? Kirimkan ke saya &mdash; nanti saya tata rapi dan terbitkan di bagian ini, lengkap dengan kategorinya.</div>
   </div>
 </section>
 
@@ -280,6 +272,21 @@ document.getElementById('menuBtn').addEventListener('click',function(){
 document.querySelectorAll('.nav-links a').forEach(function(a){
   a.addEventListener('click',function(){document.getElementById('navLinks').classList.remove('open');});
 });
+</script>
+<script>
+const ARTICLES=[
+ {slug:'artikel/pendidikan-01.html',title:'Satu Soal, Satu Cerita: Mengapa Setiap Soal Matematika Butuh Stimulus',category:'Pendidikan',date:'2026-11-02',excerpt:'Pengalaman menelaah soal ujian: soal hitungan polos hanya menguji prosedur. Stimulus mengubah soal menjadi cerita yang melatih nalar.'}
+];
+function tglID(d){const B=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];const H=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];const x=new Date(d+'T00:00:00');return H[x.getDay()]+', '+x.getDate()+' '+B[x.getMonth()]+' '+x.getFullYear();}
+(function(){
+ const n=new Date();const today=n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');
+ const pub=ARTICLES.filter(a=>a.date<=today).sort((a,b)=>b.date.localeCompare(a.date));
+ const tb=document.getElementById('artikel-terbaru'),ar=document.getElementById('artikel-arsip');
+ if(!pub.length){tb.innerHTML='<p class="arsip-empty">Belum ada artikel terbit. Artikel pertama terbit sesuai jadwal di atas.</p>';ar.innerHTML='<p class="arsip-empty">Arsip masih kosong.</p>';return;}
+ const a0=pub[0];
+ tb.innerHTML='<article class="karya"><div class="k-eyebrow">'+a0.category+' &middot; '+tglID(a0.date)+'</div><h3>'+a0.title+'</h3><p>'+a0.excerpt+'</p><div class="k-links"><a href="'+a0.slug+'">Baca Selengkapnya</a></div></article>';
+ ar.innerHTML=pub.map(a=>'<a class="arsip-item" href="'+a.slug+'"><span class="tgl">'+tglID(a.date)+'</span><span><span class="kat">'+a.category+'</span><br><span class="judul">'+a.title+'</span></span></a>').join('');
+})();
 </script>
 </body>
 </html>
