@@ -69,12 +69,17 @@ section{padding:56px 0}
 .k-links a:hover{color:var(--slate-deep)}
 .artikel-note{margin-top:22px;background:var(--gold-soft);border:1px dashed var(--gold);border-radius:12px;padding:18px 22px;color:#8a6d3b;font-size:.95rem}
 .sub-head{font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--slate-deep);margin-bottom:18px}
-.arsip-list{display:grid;gap:12px}
-.arsip-item{display:flex;gap:16px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;text-decoration:none;transition:transform .15s}
-.arsip-item:hover{transform:translateY(-2px)}
-.arsip-item .tgl{flex-shrink:0;font-size:.82rem;color:var(--muted);min-width:150px}
-.arsip-item .judul{font-weight:600;color:var(--slate-deep)}
-.arsip-item .kat{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:700}
+/* ---------- arsip: flyer berjalan seperti Berita web sekolah ---------- */
+.arsip-slider{overflow:hidden;position:relative}
+.arsip-track{display:flex;transition:transform .75s ease}
+.arsip-slide{flex:0 0 100%;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:30px 32px;text-decoration:none;display:block}
+.arsip-slide .kat{font-size:.75rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.arsip-slide h4{font-family:'Playfair Display',serif;font-size:1.35rem;line-height:1.4;color:var(--slate-deep);margin:8px 0 10px}
+.arsip-slide p{color:var(--muted);font-size:.95rem}
+.arsip-slide .baca{display:block;margin-top:14px;font-weight:700;color:var(--slate);font-size:.95rem}
+.arsip-dots{display:flex;gap:8px;justify-content:center;margin-top:18px}
+.arsip-dots button{width:11px;height:11px;border-radius:50%;border:1px solid var(--slate);background:transparent;cursor:pointer;padding:0}
+.arsip-dots button.aktif{background:var(--slate)}
 .arsip-empty{color:var(--muted);font-size:.95rem}
 /* ---------- kontak ---------- */
 .contact-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:38px;box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 1fr;gap:28px}
@@ -96,6 +101,8 @@ footer .draft-note{margin-bottom:10px}
   .menu-btn{display:block}
   .contact-card{grid-template-columns:1fr}
   .about-card,.contact-card{padding:28px 24px}
+  .arsip-slide{padding:24px 22px}
+  .arsip-slide h4{font-size:1.2rem}
 }
 </style>
 </head>
@@ -203,12 +210,10 @@ footer .draft-note{margin-bottom:10px}
 
 <section id="artikel">
   <div class="wrap">
-    <div class="sec-head" style="margin-bottom:10px">
-      <span class="eyebrow">Artikel</span>
-    </div>
+    <h3 class="sub-head">Artikel</h3>
     <div class="karya-grid" id="artikel-terbaru"></div>
     <h3 class="sub-head" style="margin-top:38px">Arsip Artikel</h3>
-    <div class="arsip-list" id="artikel-arsip"></div>
+    <div id="artikel-arsip"></div>
     <div class="artikel-note">Punya naskah artikel? Kirimkan ke saya &mdash; nanti saya tata rapi dan terbitkan di bagian ini, lengkap dengan kategorinya.</div>
   </div>
 </section>
@@ -262,7 +267,20 @@ function tglID(d){const B=['Januari','Februari','Maret','April','Mei','Juni','Ju
  if(!pub.length){tb.innerHTML='<p class="arsip-empty">Belum ada artikel terbit. Artikel pertama terbit sesuai jadwal di atas.</p>';ar.innerHTML='<p class="arsip-empty">Arsip masih kosong.</p>';return;}
  const a0=pub[0];
  tb.innerHTML='<article class="karya"><div class="k-eyebrow">'+a0.category+' &middot; '+tglID(a0.date)+'</div><h3>'+a0.title+'</h3><p>'+a0.excerpt+'</p><div class="k-links"><a href="'+a0.slug+'">Baca Selengkapnya</a></div></article>';
- ar.innerHTML=pub.map(a=>'<a class="arsip-item" href="'+a.slug+'"><span class="tgl">'+tglID(a.date)+'</span><span><span class="kat">'+a.category+'</span><br><span class="judul">'+a.title+'</span></span></a>').join('');
+ ar.innerHTML='<div class="arsip-slider" id="arsipSlider"><div class="arsip-track">'+pub.map(a=>'<a class="arsip-slide" href="'+a.slug+'"><span class="kat">'+a.category+' &middot; '+tglID(a.date)+'</span><h4>'+a.title+'</h4><p>'+a.excerpt+'</p><span class="baca">Baca Selengkapnya &rarr;</span></a>').join('')+'</div><div class="arsip-dots" id="arsipDots"></div></div>';
+ (function(){
+   var slider=document.getElementById('arsipSlider');if(!slider)return;
+   var track=slider.querySelector('.arsip-track');var slides=track.children.length;
+   var dotsBox=document.getElementById('arsipDots');var idx=0,timer=null;
+   for(var i=0;i<slides;i++){var b=document.createElement('button');b.setAttribute('aria-label','Artikel '+(i+1));(function(n){b.addEventListener('click',function(){go(n);restart();});})(i);dotsBox.appendChild(b);}
+   function go(n){idx=(n+slides)%slides;track.style.transform='translateX(-'+(idx*100)+'%)';var ds=dotsBox.children;for(var k=0;k<ds.length;k++)ds[k].classList.toggle('aktif',k===idx);}
+   function restart(){if(timer)clearInterval(timer);if(slides>1)timer=setInterval(function(){go(idx+1);},5000);}
+   slider.addEventListener('mouseenter',function(){if(timer)clearInterval(timer);});
+   slider.addEventListener('mouseleave',restart);
+   slider.addEventListener('touchstart',function(){if(timer)clearInterval(timer);},{passive:true});
+   slider.addEventListener('touchend',restart);
+   go(0);restart();
+ })();
 })();
 </script>
 </body>
